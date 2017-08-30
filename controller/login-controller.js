@@ -34,10 +34,19 @@ function registerUser(req,res,next){
 
             //console.log('hash', userdata.password,req.body.password);
            // console.log(bcrypt.compareSync(req.body.password, userdata.password));  //** for checking the password during login
-                userservice.registerUser(userdata,verifytoken)
-                .then(function(done){
-                    console.log('completed');
-                    res.status(200).json(done);
+                userservice.registerUser(userdata)
+                .then(function(inserteddata){
+                    userservice.validation(inserteddata,verifytoken)
+                        .then(function(abc){
+                            res.status(200).json('user registered and verification token stored in db');
+
+                        })
+                        .catch(function(err){
+                            console.log(err);
+                        })
+
+                    
+                   
                 })
                 .catch(function(err){
                     console.log(err);

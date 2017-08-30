@@ -11,18 +11,19 @@ module.exports = services;
 
 services.registerUser = registerUser;
 services.checkUser = checkUser;
+services.validation = validation;
 
 var validatedata = { };
 
 // function to add new user data into the db
-function registerUser(userdata,token){
+function registerUser(userdata){
  
     //console.log('inside add user services');
     let defered = new Q.defer(); 
    
     db.logintable.insert(userdata, function(err, done){
         //console.log(token);
-        validation(userdata.name,token); //function that adds name and verification token in sep collection
+       // validation(userdata.name,token); //function that adds name and verification token in sep collection
        
         if(err) defered.reject(err);
         defered.resolve(done);
@@ -49,15 +50,24 @@ function checkUser(username){
 }
 
 function validation(name,verfitoken){
-    //console.log('======>',name,verfitoken);
+    let defered = new Q.defer();
+
+   // console.log('======>',name.ops[0],verfitoken);
     var validatedata = {
-        name: name,
+        name: name.ops[0].name,
         verificationtoken:verfitoken,
         createdat: new Date()
     }
-   // console.log('validation data =====>',validatedate);
-    db.validation.insert(validatedata);
-    console.log('validation',name,verfitoken);
+   console.log('validation data =====>',validatedata);
+    db.validation.insert(validatedata, function(err, done){
+      //  console.log('validation-----------',name,verfitoken);
+        if(err) defered.reject(err);
+        defered.resolve(done); 
+
+    });
+
+    return defered.promise;
+  
 
 }
 
