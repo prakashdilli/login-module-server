@@ -3,6 +3,7 @@ var db = mongo.db("mongodb://localhost:27017/login", {native_parser: true});
 
 var Q = require('q');
 db.bind('logintable');
+db.bind('validation')
 
 services = {};
 
@@ -11,23 +12,18 @@ module.exports = services;
 services.registerUser = registerUser;
 services.checkUser = checkUser;
 
+var validatedata = { };
 
 // function to add new user data into the db
-function registerUser(userdata,createdtime,verifytoken){
+function registerUser(userdata,token){
+ 
     //console.log('inside add user services');
-    let defered = new Q.defer();
-
-    let data = {
-        name:userdata.name,
-        password:userdata.password,
-        verification:"false",
-        createdtime:createdtime,
-        verifytoken:verifytoken
-    }
-   // console.log(data);
-
-
-    db.logintable.insert(data, function(err, done){
+    let defered = new Q.defer(); 
+   
+    db.logintable.insert(userdata, function(err, done){
+        //console.log(token);
+        validation(userdata.name,token); //function that adds name and verification token in sep collection
+       
         if(err) defered.reject(err);
         defered.resolve(done);
     });
@@ -51,3 +47,17 @@ function checkUser(username){
     return defered.promise;
 
 }
+
+function validation(name,verfitoken){
+    //console.log('======>',name,verfitoken);
+    var validatedata = {
+        name: name,
+        verificationtoken:verfitoken,
+        createdat: new Date()
+    }
+   // console.log('validation data =====>',validatedate);
+    db.validation.insert(validatedata);
+    console.log('validation',name,verfitoken);
+
+}
+

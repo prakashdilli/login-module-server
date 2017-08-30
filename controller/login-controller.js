@@ -1,6 +1,7 @@
 router = require('express').Router();
 userservice = require('../service/login-service');
 const uuidv1 = require('uuid/v1');
+var bcrypt = require('bcryptjs');
 
 router.post('/', registerUser);
 
@@ -16,32 +17,38 @@ function registerUser(req,res,next){
         //console.log(count);
         
         // Enters if no user exists already
-        if(count==0){
+        if(count==0){ 
           
-            var verifytoken = uuidv1();  //  creates random verfication token
-            var createdtime = Date.now();   //  creates timestamp
-                userservice.registerUser(req.body,createdtime,verifytoken)
+            var verifytoken = uuidv1();  //  creates random verfication token        
+
+            var salt = bcrypt.genSaltSync(10);          // salt for hash           
+            var hash = bcrypt.hashSync(req.body.password, salt);  // hash to be stored in db
+            //hashtest = bcrypt.hashSync('prakash1', salt);
+           // console.log(hashtest);
+            let userdata = {
+                name:req.body.name,
+                password:hash,
+                verification:"false",
+                createdtime:new Date()
+            }
+
+            //console.log('hash', userdata.password,req.body.password);
+           // console.log(bcrypt.compareSync(req.body.password, userdata.password));  //** for checking the password during login
+                userservice.registerUser(userdata,verifytoken)
                 .then(function(done){
-                    
-                    res.status(200).json("created");
+                    console.log('completed');
+                    res.status(200).json(done);
                 })
                 .catch(function(err){
                     console.log(err);
                 })
-
         }
         else
             res.status(200).json("user already exists");
-
         
-
     })
     .catch(function(err){
     console.log(err);
     })
     
-     
-    
-   
-
 }
