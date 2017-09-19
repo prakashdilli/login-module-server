@@ -1,63 +1,62 @@
 router = require('express').Router();
 userservice = require('../service/login-service');
-const uuidv1 = require('uuid/v1');
 var bcrypt = require('bcryptjs');
+var jwt = require('jsonwebtoken');
 
-router.post('/', registerUser);
+var config = require('../config.json');
+
+
+router.post('/', loginUser);
+
 
 module.exports = router;
 
+function loginUser(req,res,next){
+    //console.log('inside login user controller',req.body.name);
+   // res.json('success');
+   let data = {
+       name: req.body.name
+   }
+   userservice.getUserdata(data)
+   .then(function(userdata){
+       //console.log(userdata.length);
+       //console.log(done);
+       if(userdata.length != 0 ){
+           if(userdata[0].verification == true){
 
-// registerUser function To register a new user
-function registerUser(req,res,next){
-   
-    // checking the user already exits in the db
-    userservice.checkUser(req.body.name)
-    .then(function(count){
-        //console.log(count);
-        
-        // Enters if no user exists already
-        if(count==0){ 
-          
-            var verifytoken = uuidv1();  //  creates random verfication token        
+             // console.log('user is there',userdata[0].password);
+                // console.log( bcrypt.compareSync(req.body.password, userdata[0].password));
+                if( bcrypt.compareSync(req.body.password, userdata[0].password)){
+                    // console.log('password matched');
 
-            var salt = bcrypt.genSaltSync(10);          // salt for hash           
-            var hash = bcrypt.hashSync(req.body.password, salt);  // hash to be stored in db
-            //hashtest = bcrypt.hashSync('prakash1', salt);
-           // console.log(hashtest);
-            let userdata = {
-                name:req.body.name,
-                password:hash,
-                verification:"false",
-                createdtime:new Date()
-            }
+                         
+                        res.json({status:'success', message :'password matched',jwt : {name: userdata[0].name, token: jwt.sign({ name: userdata[0].name}, config.secret)}});
+                    }
+                    else{
+                        // console.log('user is available but password mismatch');
+                        res.json({status:'failure', message :'password mismatched'});
+                        
+                    }
 
-            //console.log('hash', userdata.password,req.body.password);
-           // console.log(bcrypt.compareSync(req.body.password, userdata.password));  //** for checking the password during login
-                userservice.registerUser(userdata)
-                .then(function(inserteddata){
-                    userservice.validation(inserteddata,verifytoken)
-                        .then(function(abc){
-                            res.status(200).json('user registered and verification token stored in db');
+           }
+           else{
+               res.json({status:'failure', message:'verification is false'})
+           }
+                
+               
 
-                        })
-                        .catch(function(err){
-                            console.log(err);
-                        })
+       }
+       else{
+         //  console.log('no user is availabe');
+           res.json({status:'failure', message :'no user availabe'});
+       }
 
-                    
-                   
-                })
-                .catch(function(err){
-                    console.log(err);
-                })
-        }
-        else
-            res.status(200).json("user already exists");
-        
-    })
-    .catch(function(err){
-    console.log(err);
-    })
-    
+
+   })
+   .catch(function(error){
+       console.log(error);
+
+   })
+  
+
 }
