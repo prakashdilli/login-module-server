@@ -96,14 +96,14 @@ function sendMail(username,urlpath){
             port: 587,
             secure: false, // true for 465, false for other ports
             auth: {
-                user: 'prakashece245@gmail.com', // generated ethereal user
-                pass: 'renuprakash'  // generated ethereal password
+                user: 'xxxxxxxxxx' // generated ethereal user
+                pass: 'xxxxxxxxxx'  // generated ethereal password
             }
         });
     
         // setup email data with unicode symbols
         let mailOptions = {
-            from: 'prakashece245@gmail.com', // sender address
+            from: 'xxxxxxxxxxxx', // sender address
             to: username, // list of receivers ** to be replaced with username
             subject: 'Hello ✔', // Subject line
             text: urlpath,
